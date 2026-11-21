@@ -1,4 +1,4 @@
-const CACHE = "chronotrain-v1.2";
+const CACHE = "chronotrain-v1.3";
 const ASSETS = [
   "./",
   "./index.html",

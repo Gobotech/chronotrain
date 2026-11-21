@@ -139,7 +139,7 @@ footer { display:flex; justify-content:space-between; gap:15px; margin-top:20px;
 
 @media (min-width: 650px) {
   .app-shell { padding-inline:28px; }
-  .settings-grid { grid-template-columns:repeat(4,1fr); }
+  .settings-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .setting-card { min-height:124px; }
   .session-summary strong { font-size:14px; }
 }
@@ -181,7 +181,7 @@ footer { display:flex; justify-content:space-between; gap:15px; margin-top:20px;
 .clear-history { margin-top:12px; padding:11px; background:transparent; color:var(--pink); border:1px solid rgba(255,45,149,.4); font-size:10px; }
 .clear-history[hidden] { display:none; }
 .saved-label { color:var(--green) !important; font-size:12px; letter-spacing:.08em; }
-@media (min-width:650px) { .settings-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (min-width:650px) { .settings-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:380px) { .setting-card { padding:10px; } .stepper { grid-template-columns:32px minmax(0,1fr) 32px; gap:3px; } .stepper button { height:38px; } .stepper input { font-size:26px; } .time-stepper input { font-size:24px; } }
 
 /* ChronoTrain v1.2 */

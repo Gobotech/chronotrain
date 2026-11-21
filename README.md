@@ -62,3 +62,11 @@ If guaranteed locked-screen alerts are mandatory, ChronoTrain needs a native iOS
 - TRAINING LOG se abre desde el botón **LOG** de la cabecera, sin ocupar espacio en la pantalla de configuración.
 - Los registros de la versión 1.1 siguen almacenados con la misma clave de `localStorage` y se visualizan en el historial.
 - Si tienes instalada la PWA y no aparecen los cambios, cierra y vuelve a abrir la app tras actualizar GitHub Pages.
+
+
+## Novedades v1.3
+
+- Eslogan: Train hard. Beat the clock.
+- Descripción simplificada de la configuración.
+- Selectores ordenados en tres filas de dos: SERIES / REST BETWEEN SERIES; ROUNDS / WORK; REST / GET READY.
+- Cache Service Worker actualizada para facilitar la publicación de la nueva versión.

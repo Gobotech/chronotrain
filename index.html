@@ -26,7 +26,7 @@
       <div class="brand">
         <span class="eyebrow">RETRO FITNESS</span>
         <h1>CHRONO<span>TRAIN</span></h1>
-        <p>Beat the Clock. Train harder.</p>
+        <p>Train hard. Beat the clock.</p>
       </div>
       <div class="header-actions"><button id="historyOpenBtn" class="history-shortcut" type="button" aria-label="Ver historial de entrenamientos">◷ <span>LOG</span></button><button id="soundToggle" class="icon-btn" type="button" aria-label="Activar o desactivar sonido" aria-pressed="true">♪</button></div>
     </header>
@@ -36,25 +36,35 @@
         <div class="hero-card">
           <div class="mini-label">BUILD YOUR SESSION</div>
           <h2 id="setupTitle">INTERVAL SETUP</h2>
-          <p class="lead">Cada serie contiene el número de rondas que elijas. Configura el entrenamiento y pulsa Start.</p>
+          <p class="lead">Configura tu entrenamiento y pulsa Start.</p>
         </div>
 
         <div class="settings-grid">
-          <article class="setting-card accent-yellow">
-            <label for="rounds">ROUNDS</label>
-            <div class="stepper">
-              <button type="button" data-step="rounds" data-delta="-1" aria-label="Reducir rondas">−</button>
-              <input id="rounds" type="number" min="1" max="99" value="8" inputmode="numeric" />
-              <button type="button" data-step="rounds" data-delta="1" aria-label="Aumentar rondas">+</button>
-            </div>
-          </article>
-
           <article class="setting-card accent-purple">
             <label for="series">SERIES</label>
             <div class="stepper">
               <button type="button" data-step="series" data-delta="-1" aria-label="Reducir series">−</button>
               <input id="series" type="number" min="1" max="99" value="1" inputmode="numeric" />
               <button type="button" data-step="series" data-delta="1" aria-label="Aumentar series">+</button>
+            </div>
+          </article>
+
+          <article class="setting-card accent-purple">
+            <label for="seriesRestTime">REST BETWEEN SERIES</label>
+            <div class="stepper time-stepper">
+              <button type="button" data-step="seriesRestTime" data-delta="-5" aria-label="Reducir 5 segundos de descanso entre series">−</button>
+              <input id="seriesRestTime" type="number" min="0" max="3599" value="60" inputmode="numeric" />
+              <button type="button" data-step="seriesRestTime" data-delta="5" aria-label="Aumentar 5 segundos de descanso entre series">+</button>
+            </div>
+            <span class="unit-label">SECONDS · ±5</span>
+          </article>
+
+          <article class="setting-card accent-yellow">
+            <label for="rounds">ROUNDS</label>
+            <div class="stepper">
+              <button type="button" data-step="rounds" data-delta="-1" aria-label="Reducir rondas">−</button>
+              <input id="rounds" type="number" min="1" max="99" value="8" inputmode="numeric" />
+              <button type="button" data-step="rounds" data-delta="1" aria-label="Aumentar rondas">+</button>
             </div>
           </article>
 
@@ -74,16 +84,6 @@
               <button type="button" data-step="restTime" data-delta="-5" aria-label="Reducir 5 segundos">−</button>
               <input id="restTime" type="number" min="0" max="3599" value="20" inputmode="numeric" />
               <button type="button" data-step="restTime" data-delta="5" aria-label="Aumentar 5 segundos">+</button>
-            </div>
-            <span class="unit-label">SECONDS · ±5</span>
-          </article>
-
-          <article class="setting-card accent-purple">
-            <label for="seriesRestTime">REST BETWEEN SERIES</label>
-            <div class="stepper time-stepper">
-              <button type="button" data-step="seriesRestTime" data-delta="-5" aria-label="Reducir 5 segundos de descanso entre series">−</button>
-              <input id="seriesRestTime" type="number" min="0" max="3599" value="60" inputmode="numeric" />
-              <button type="button" data-step="seriesRestTime" data-delta="5" aria-label="Aumentar 5 segundos de descanso entre series">+</button>
             </div>
             <span class="unit-label">SECONDS · ±5</span>
           </article>
@@ -179,7 +179,7 @@
     </main>
 
     <footer>
-      <span>CHRONOTRAIN / V1.2</span>
+      <span>CHRONOTRAIN / V1.3</span>
       <span id="installHint">ADD TO HOME SCREEN</span>
     </footer>
   </div>
