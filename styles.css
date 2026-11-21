@@ -183,3 +183,22 @@ footer { display:flex; justify-content:space-between; gap:15px; margin-top:20px;
 .saved-label { color:var(--green) !important; font-size:12px; letter-spacing:.08em; }
 @media (min-width:650px) { .settings-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:380px) { .setting-card { padding:10px; } .stepper { grid-template-columns:32px minmax(0,1fr) 32px; gap:3px; } .stepper button { height:38px; } .stepper input { font-size:26px; } .time-stepper input { font-size:24px; } }
+
+/* ChronoTrain v1.2 */
+.header-actions { display:flex; gap:7px; align-items:center; }
+.history-shortcut { height:44px; min-width:64px; border:1px solid rgba(0,229,255,.4); background:var(--panel); color:var(--cyan); border-radius:8px; font-family:"Share Tech Mono",monospace; font-size:20px; cursor:pointer; }
+.history-shortcut span { font-size:11px; letter-spacing:.06em; }
+.phase-series-rest { --phase:var(--purple); }
+.save-prompt { border:1px solid var(--border); background:var(--panel); padding:20px 14px; margin:20px 0; }
+.save-prompt h3 { color:var(--cyan); font-size:14px; line-height:1.5; margin:0 0 10px; }
+.save-prompt p { font-size:14px; margin:0 0 15px; }
+.decision-buttons { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.workout-meta[hidden], .save-prompt[hidden], .saved-label[hidden] { display:none; }
+.workout-meta { text-align:left; margin:20px 0; }
+.save-submit { margin-top:7px; font-size:12px; }
+.skip-save { background:transparent; border:0; color:var(--muted); padding:12px; font-size:11px; }
+.history-page { padding-top:6px; }
+.history-page .history-section { margin-top:15px; }
+.back-btn { padding:12px; border:1px solid var(--border); background:var(--panel); color:var(--cyan); font-size:11px; }
+.history-heading h2 { margin:0; font-size:20px; color:var(--cyan); }
+@media (max-width:390px) { .header-actions { gap:5px; } .history-shortcut { min-width:54px; } .brand h1 { font-size:26px; } }

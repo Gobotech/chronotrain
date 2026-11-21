@@ -28,7 +28,7 @@
         <h1>CHRONO<span>TRAIN</span></h1>
         <p>Beat the Clock. Train harder.</p>
       </div>
-      <button id="soundToggle" class="icon-btn" type="button" aria-label="Activar o desactivar sonido" aria-pressed="true">♪</button>
+      <div class="header-actions"><button id="historyOpenBtn" class="history-shortcut" type="button" aria-label="Ver historial de entrenamientos">◷ <span>LOG</span></button><button id="soundToggle" class="icon-btn" type="button" aria-label="Activar o desactivar sonido" aria-pressed="true">♪</button></div>
     </header>
 
     <main>
@@ -78,6 +78,16 @@
             <span class="unit-label">SECONDS · ±5</span>
           </article>
 
+          <article class="setting-card accent-purple">
+            <label for="seriesRestTime">REST BETWEEN SERIES</label>
+            <div class="stepper time-stepper">
+              <button type="button" data-step="seriesRestTime" data-delta="-5" aria-label="Reducir 5 segundos de descanso entre series">−</button>
+              <input id="seriesRestTime" type="number" min="0" max="3599" value="60" inputmode="numeric" />
+              <button type="button" data-step="seriesRestTime" data-delta="5" aria-label="Aumentar 5 segundos de descanso entre series">+</button>
+            </div>
+            <span class="unit-label">SECONDS · ±5</span>
+          </article>
+
           <article class="setting-card accent-orange">
             <label for="prepareTime">GET READY</label>
             <div class="stepper time-stepper">
@@ -87,13 +97,6 @@
             </div>
             <span class="unit-label">SECONDS · ±5</span>
           </article>
-        </div>
-
-        <div class="workout-meta">
-          <label for="workoutName">WORKOUT NAME <span>OPTIONAL</span></label>
-          <input id="workoutName" type="text" maxlength="70" placeholder="e.g. Morning Tabata" autocomplete="off" />
-          <label for="workoutDescription">DESCRIPTION <span>OPTIONAL</span></label>
-          <textarea id="workoutDescription" maxlength="500" rows="2" placeholder="Exercise plan, notes or training goal…"></textarea>
         </div>
 
         <div class="session-summary" aria-live="polite">
@@ -113,12 +116,7 @@
           <button class="preset" type="button" data-series="1" data-rounds="6" data-work="60" data-rest="30" data-prepare="5">POWER 60/30</button>
         </div>
 
-        <section class="history-section" aria-labelledby="historyTitle">
-          <div class="history-heading"><h3 id="historyTitle">TRAINING LOG</h3><span id="historyCount">0 SESSIONS</span></div>
-          <p class="history-intro">Completed workouts are saved on this device.</p>
-          <div id="historyList" class="history-list"></div>
-          <button id="clearHistoryBtn" class="clear-history" type="button" hidden>CLEAR HISTORY</button>
-        </section>
+
       </section>
 
       <section id="timerView" class="view timer-view" aria-labelledby="phaseLabel">
@@ -149,13 +147,39 @@
         <span class="mini-label">SESSION COMPLETE</span>
         <h2 id="doneTitle">WORKOUT<br>COMPLETED</h2>
         <p id="doneSummary">8 rounds crushed.</p>
-        <p class="saved-label">✓ SAVED TO TRAINING LOG</p>
+        <div id="savePrompt" class="save-prompt">
+          <h3>¿QUIERES REGISTRAR ESTE ENTRENO?</h3>
+          <p>Guárdalo en tu historial de entrenamientos.</p>
+          <div class="decision-buttons">
+            <button id="saveYesBtn" class="secondary-btn purple" type="button">YES, SAVE</button>
+            <button id="saveNoBtn" class="secondary-btn" type="button">NO, THANKS</button>
+          </div>
+        </div>
+        <form id="saveForm" class="workout-meta" hidden>
+          <label for="workoutName">WORKOUT NAME</label>
+          <input id="workoutName" type="text" maxlength="70" placeholder="e.g. Morning Tabata" autocomplete="off" required />
+          <label for="workoutDescription">DESCRIPTION <span>OPTIONAL</span></label>
+          <textarea id="workoutDescription" maxlength="500" rows="3" placeholder="Exercise plan, notes or training goal…"></textarea>
+          <button class="primary-btn save-submit" type="submit">SAVE WORKOUT</button>
+          <button id="cancelSaveBtn" class="skip-save" type="button">DON'T SAVE</button>
+        </form>
+        <p id="saveFeedback" class="saved-label" hidden></p>
         <button id="againBtn" class="primary-btn completed" type="button">TRAIN AGAIN</button>
+      </section>
+
+      <section id="historyView" class="view history-page" aria-labelledby="historyTitle">
+        <button id="historyBackBtn" class="back-btn" type="button">← BACK TO SETUP</button>
+        <section class="history-section" aria-labelledby="historyTitle">
+          <div class="history-heading"><h2 id="historyTitle">TRAINING LOG</h2><span id="historyCount">0 SESSIONS</span></div>
+          <p class="history-intro">Entrenamientos guardados en este dispositivo.</p>
+          <div id="historyList" class="history-list"></div>
+          <button id="clearHistoryBtn" class="clear-history" type="button" hidden>CLEAR HISTORY</button>
+        </section>
       </section>
     </main>
 
     <footer>
-      <span>CHRONOTRAIN / V1.1</span>
+      <span>CHRONOTRAIN / V1.2</span>
       <span id="installHint">ADD TO HOME SCREEN</span>
     </footer>
   </div>

@@ -5,8 +5,8 @@
   const $$ = (sel) => [...document.querySelectorAll(sel)];
 
   const els = {
-    setupView: $("#setupView"), timerView: $("#timerView"), doneView: $("#doneView"),
-    rounds: $("#rounds"), series: $("#series"), workoutName: $("#workoutName"), workoutDescription: $("#workoutDescription"), roundsTotal: $("#roundsTotal"), historyList: $("#historyList"), historyCount: $("#historyCount"), clearHistoryBtn: $("#clearHistoryBtn"), workTime: $("#workTime"), restTime: $("#restTime"), prepareTime: $("#prepareTime"),
+    setupView: $("#setupView"), timerView: $("#timerView"), doneView: $("#doneView"), historyView: $("#historyView"), historyOpenBtn: $("#historyOpenBtn"), historyBackBtn: $("#historyBackBtn"), savePrompt: $("#savePrompt"), saveForm: $("#saveForm"), saveYesBtn: $("#saveYesBtn"), saveNoBtn: $("#saveNoBtn"), cancelSaveBtn: $("#cancelSaveBtn"), saveFeedback: $("#saveFeedback"),
+    rounds: $("#rounds"), series: $("#series"), workoutName: $("#workoutName"), workoutDescription: $("#workoutDescription"), roundsTotal: $("#roundsTotal"), historyList: $("#historyList"), historyCount: $("#historyCount"), clearHistoryBtn: $("#clearHistoryBtn"), workTime: $("#workTime"), restTime: $("#restTime"), prepareTime: $("#prepareTime"), seriesRestTime: $("#seriesRestTime"),
     totalDuration: $("#totalDuration"), startBtn: $("#startBtn"), pauseBtn: $("#pauseBtn"), skipBtn: $("#skipBtn"), stopBtn: $("#stopBtn"), againBtn: $("#againBtn"),
     soundToggle: $("#soundToggle"), roundCounter: $("#roundCounter"), timerPanel: $("#timerPanel"), phaseMessage: $("#phaseMessage"), phaseLabel: $("#phaseLabel"), timerDisplay: $("#timerDisplay"), phaseProgressBar: $("#phaseProgressBar"), nextLine: $("#nextLine"), alertBanner: $("#alertBanner"), wakeStatus: $("#wakeStatus"), doneSummary: $("#doneSummary"), installHint: $("#installHint")
   };
@@ -33,7 +33,8 @@
   const PHASES = {
     ready: { label: "GET READY", message: "GET READY!", className: "phase-ready" },
     work: { label: "WORK", message: "LET'S GO!", className: "phase-work" },
-    rest: { label: "REST", message: "RELAX", className: "phase-rest" }
+    rest: { label: "REST", message: "RELAX", className: "phase-rest" },
+    seriesRest: { label: "SERIES REST", message: "RELAX", className: "phase-series-rest" }
   };
 
   function clamp(value, min, max) {
@@ -48,6 +49,7 @@
       series: clamp(els.series.value, 1, 99),
       work: clamp(els.workTime.value, 5, 3599),
       rest: clamp(els.restTime.value, 0, 3599),
+      seriesRest: clamp(els.seriesRestTime.value, 0, 3599),
       prepare: clamp(els.prepareTime.value, 0, 60)
     };
   }
@@ -58,6 +60,7 @@
     els.series.value = c.series;
     els.workTime.value = c.work;
     els.restTime.value = c.rest;
+    els.seriesRestTime.value = c.seriesRest;
     els.prepareTime.value = c.prepare;
     updateSummary();
   }
@@ -69,16 +72,20 @@
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
+  function plannedSeconds(c) {
+    return c.prepare + c.series * c.rounds * c.work + c.series * Math.max(0, c.rounds - 1) * c.rest + Math.max(0, c.series - 1) * c.seriesRest;
+  }
+
   function updateSummary() {
     const c = getConfig();
     const roundsTotal = c.rounds * c.series;
-    const total = c.prepare + (roundsTotal * c.work) + (Math.max(0, roundsTotal - 1) * c.rest);
+    const total = plannedSeconds(c);
     els.totalDuration.textContent = formatTime(total);
     els.roundsTotal.textContent = roundsTotal;
   }
 
   function showView(view) {
-    [els.setupView, els.timerView, els.doneView].forEach(v => v.classList.remove("active"));
+    [els.setupView, els.timerView, els.doneView, els.historyView].forEach(v => v.classList.remove("active"));
     view.classList.add("active");
   }
 
@@ -155,7 +162,7 @@
   }
 
   function setTimerTheme(className) {
-    els.timerPanel.classList.remove("phase-ready", "phase-work", "phase-rest", "phase-last", "phase-paused", "phase-complete");
+    els.timerPanel.classList.remove("phase-ready", "phase-work", "phase-rest", "phase-last", "phase-paused", "phase-complete", "phase-series-rest");
     els.timerPanel.classList.add(className);
   }
 
@@ -164,10 +171,11 @@
     if (state.phase === "ready") return `NEXT: WORK ${formatTime(c.work)}`;
     if (state.phase === "work") {
       if (state.round >= c.rounds && state.series >= c.series) return "NEXT: FINISH";
-      if (c.rest > 0) return `NEXT: REST ${formatTime(c.rest)}`;
-      return state.round >= c.rounds ? `NEXT: SERIES ${state.series + 1}` : `NEXT: ROUND ${state.round + 1}`;
+      if (state.round >= c.rounds) return c.seriesRest > 0 ? `NEXT: SERIES REST ${formatTime(c.seriesRest)}` : `NEXT: SERIES ${state.series + 1}`;
+      return c.rest > 0 ? `NEXT: REST ${formatTime(c.rest)}` : `NEXT: ROUND ${state.round + 1}`;
     }
     if (state.phase === "rest") return `NEXT: WORK ${formatTime(c.work)}`;
+    if (state.phase === "seriesRest") return `NEXT: SERIES ${state.series + 1} · WORK ${formatTime(c.work)}`;
     return "";
   }
 
@@ -212,20 +220,22 @@
         finishWorkout();
         return;
       }
-      if (c.rest > 0) {
-        startPhase("rest", c.rest);
+      const betweenSeries = state.round >= c.rounds;
+      const duration = betweenSeries ? c.seriesRest : c.rest;
+      if (duration > 0) {
+        startPhase(betweenSeries ? "seriesRest" : "rest", duration);
       } else {
         nextRound();
       }
       return;
     }
-    if (state.phase === "rest") {
+    if (state.phase === "rest" || state.phase === "seriesRest") {
       nextRound();
     }
   }
 
   function renderTick(force = false) {
-    if (!state.config || state.paused || !["ready","work","rest"].includes(state.phase)) return;
+    if (!state.config || state.paused || !["ready","work","rest","seriesRest"].includes(state.phase)) return;
 
     const remainingMs = state.phaseEndsAt - performance.now();
     if (remainingMs <= 0) {
@@ -246,7 +256,7 @@
         setTimerTheme("phase-last");
         els.phaseMessage.textContent = "FINAL EFFORT";
         els.alertBanner.textContent = "FINAL EFFORT";
-      } else if (state.phase === "rest" || state.phase === "ready") {
+      } else if (state.phase === "rest" || state.phase === "ready" || state.phase === "seriesRest") {
         setTimerTheme("phase-last");
         els.phaseMessage.textContent = "GET READY!";
         els.alertBanner.textContent = "GET READY!";
@@ -268,11 +278,7 @@
     state.config = getConfig();
     state.round = 1;
     state.series = 1;
-    state.workoutMeta = {
-      name: els.workoutName.value.trim().slice(0,70) || "Interval Workout",
-      description: els.workoutDescription.value.trim().slice(0,500),
-      startedAt: new Date().toISOString()
-    };
+    state.workoutMeta = { startedAt: new Date().toISOString() };
     state.paused = false;
     await initAudio();
     showView(els.timerView);
@@ -327,7 +333,11 @@
     state.interval = null;
     cue("done");
     els.doneSummary.textContent = `${state.config.series} series · ${state.config.rounds} rounds per series · ${state.config.series * state.config.rounds} rounds total.`;
-    saveCompletedWorkout();
+    els.saveForm.reset();
+    els.saveForm.hidden = true;
+    els.savePrompt.hidden = false;
+    els.saveFeedback.hidden = true;
+    els.againBtn.textContent = "TRAIN AGAIN";
     setTimerTheme("phase-complete");
     await releaseWakeLock();
     showView(els.doneView);
@@ -342,16 +352,17 @@
     } catch (_) { return []; }
   }
 
-  function saveCompletedWorkout() {
+  function saveCompletedWorkout(name, description) {
     const c = state.config;
     if (!c) return;
     const entry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       date: new Date().toISOString(),
       ...state.workoutMeta,
+      name, description,
       series: c.series, rounds: c.rounds,
-      work: c.work, rest: c.rest, prepare: c.prepare,
-      plannedSeconds: c.prepare + c.series * c.rounds * c.work + (c.series * c.rounds - 1) * c.rest
+      work: c.work, rest: c.rest, seriesRest: c.seriesRest, prepare: c.prepare,
+      plannedSeconds: plannedSeconds(c)
     };
     try {
       const items = getHistory();
@@ -382,7 +393,7 @@
       date.dateTime = item.date;
       date.textContent = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.date));
       const details = document.createElement("p");
-      details.textContent = `${item.series} series × ${item.rounds} rounds · ${formatTime(item.work)} work / ${formatTime(item.rest)} rest · ${formatTime(item.plannedSeconds)} total`;
+      details.textContent = `${item.series} series × ${item.rounds} rounds · ${formatTime(item.work)} work / ${formatTime(item.rest)} rest · ${formatTime(item.seriesRest ?? item.rest)} between series · ${formatTime(item.plannedSeconds)} total`;
       card.append(title, date, details);
       if (item.description) {
         const desc = document.createElement("p");
@@ -393,6 +404,31 @@
       els.historyList.append(card);
     });
   }
+
+  els.historyOpenBtn.addEventListener("click", () => { renderHistory(); showView(els.historyView); });
+  els.historyBackBtn.addEventListener("click", () => showView(els.setupView));
+  els.saveYesBtn.addEventListener("click", () => {
+    els.savePrompt.hidden = true;
+    els.saveForm.hidden = false;
+    els.workoutName.focus();
+  });
+  function skipSaving() {
+    els.savePrompt.hidden = true;
+    els.saveForm.hidden = true;
+    els.saveFeedback.hidden = false;
+    els.saveFeedback.textContent = "WORKOUT NOT SAVED";
+  }
+  els.saveNoBtn.addEventListener("click", skipSaving);
+  els.cancelSaveBtn.addEventListener("click", skipSaving);
+  els.saveForm.addEventListener("submit", event => {
+    event.preventDefault();
+    const name = els.workoutName.value.trim().slice(0, 70);
+    if (!name) { els.workoutName.focus(); return; }
+    saveCompletedWorkout(name, els.workoutDescription.value.trim().slice(0, 500));
+    els.saveForm.hidden = true;
+    els.saveFeedback.textContent = "✓ SAVED TO TRAINING LOG";
+    els.saveFeedback.hidden = false;
+  });
 
   els.clearHistoryBtn.addEventListener("click", () => {
     if (!window.confirm("¿Borrar todo el historial de entrenamientos de este dispositivo?")) return;
@@ -424,6 +460,7 @@
     els.workTime.value = btn.dataset.work;
     els.restTime.value = btn.dataset.rest;
     els.prepareTime.value = btn.dataset.prepare;
+    els.seriesRestTime.value = btn.dataset.seriesRest || "60";
     updateSummary();
   }));
 
