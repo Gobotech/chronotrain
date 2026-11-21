@@ -29,7 +29,7 @@ body {
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
 
 .app-shell {
@@ -84,6 +84,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .accent-yellow { --accent: var(--neon-yellow); }
 .accent-cyan { --accent: var(--cyan); }
 .accent-orange { --accent: var(--orange); }
+.accent-purple { --accent: var(--purple); }
 .stepper { display:grid; grid-template-columns:40px 1fr 40px; gap:6px; align-items:center; }
 .stepper button { height:40px; border:1px solid var(--border); background:var(--raised); color:var(--soft); border-radius:4px; font-size:20px; }
 .stepper input, .time-input-wrap input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--white); text-align:center; font-family:"Share Tech Mono", monospace; font-size:31px; font-weight:700; }
@@ -153,3 +154,32 @@ footer { display:flex; justify-content:space-between; gap:15px; margin-top:20px;
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; }
 }
+
+/* ChronoTrain v1.1: series, steppers & workout log */
+.time-stepper { grid-template-columns:36px minmax(0,1fr) 36px; gap:4px; }
+.time-stepper button { height:42px; }
+.time-stepper input { font-size:28px; }
+.unit-label { display:block; margin-top:4px; text-align:center; font-family:"Share Tech Mono",monospace; font-size:10px; letter-spacing:.1em; color:var(--muted); }
+.setting-card { min-width:0; }
+.workout-meta { margin:16px 0 0; padding:16px; background:var(--panel); border:1px solid var(--border); display:flex; flex-direction:column; gap:8px; }
+.workout-meta label { font-size:10px; letter-spacing:.12em; color:var(--soft); }
+.workout-meta label span { color:var(--disabled); font-size:9px; }
+.workout-meta input,.workout-meta textarea { width:100%; color:var(--white); border:1px solid var(--border); border-radius:5px; background:var(--navy); padding:11px; outline:none; font-family:"Share Tech Mono",monospace; font-size:15px; resize:vertical; }
+.workout-meta input:focus,.workout-meta textarea:focus { border-color:var(--cyan); }
+.workout-meta textarea { margin-bottom:3px; }
+.history-section { margin-top:30px; padding-top:18px; border-top:1px solid var(--border); }
+.history-heading { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.history-heading h3 { margin:0; font-size:18px; color:var(--cyan); }
+.history-heading span { font-family:"Share Tech Mono",monospace; color:var(--muted); font-size:12px; }
+.history-intro,.history-empty { font:14px/1.5 "Share Tech Mono",monospace; color:var(--muted); }
+.history-list { display:grid; gap:9px; margin:15px 0 8px; }
+.history-entry { padding:14px; background:var(--panel); border:1px solid var(--border); border-left:3px solid var(--purple); }
+.history-entry h4 { font-size:12px; margin:0 0 8px; overflow-wrap:anywhere; }
+.history-entry time { color:var(--cyan); font:12px "Share Tech Mono",monospace; }
+.history-entry p { margin:8px 0 0; font:13px/1.45 "Share Tech Mono",monospace; color:var(--muted); overflow-wrap:anywhere; white-space:pre-wrap; }
+.history-entry p.history-description { color:var(--soft); }
+.clear-history { margin-top:12px; padding:11px; background:transparent; color:var(--pink); border:1px solid rgba(255,45,149,.4); font-size:10px; }
+.clear-history[hidden] { display:none; }
+.saved-label { color:var(--green) !important; font-size:12px; letter-spacing:.08em; }
+@media (min-width:650px) { .settings-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:380px) { .setting-card { padding:10px; } .stepper { grid-template-columns:32px minmax(0,1fr) 32px; gap:3px; } .stepper button { height:38px; } .stepper input { font-size:26px; } .time-stepper input { font-size:24px; } }

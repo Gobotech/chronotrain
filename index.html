@@ -24,9 +24,9 @@
 
     <header class="topbar">
       <div class="brand">
-        <span class="eyebrow">RETRO FITNESS / 1986</span>
+        <span class="eyebrow">RETRO FITNESS</span>
         <h1>CHRONO<span>TRAIN</span></h1>
-        <p>Arcade energy. Train harder.</p>
+        <p>Beat the Clock. Train harder.</p>
       </div>
       <button id="soundToggle" class="icon-btn" type="button" aria-label="Activar o desactivar sonido" aria-pressed="true">♪</button>
     </header>
@@ -36,7 +36,7 @@
         <div class="hero-card">
           <div class="mini-label">BUILD YOUR SESSION</div>
           <h2 id="setupTitle">INTERVAL SETUP</h2>
-          <p class="lead">Configura tus rondas, pulsa Start y entrena sin tocar el teléfono.</p>
+          <p class="lead">Cada serie contiene el número de rondas que elijas. Configura el entrenamiento y pulsa Start.</p>
         </div>
 
         <div class="settings-grid">
@@ -49,34 +49,56 @@
             </div>
           </article>
 
+          <article class="setting-card accent-purple">
+            <label for="series">SERIES</label>
+            <div class="stepper">
+              <button type="button" data-step="series" data-delta="-1" aria-label="Reducir series">−</button>
+              <input id="series" type="number" min="1" max="99" value="1" inputmode="numeric" />
+              <button type="button" data-step="series" data-delta="1" aria-label="Aumentar series">+</button>
+            </div>
+          </article>
+
           <article class="setting-card accent-yellow">
             <label for="workTime">WORK</label>
-            <div class="time-input-wrap">
+            <div class="stepper time-stepper">
+              <button type="button" data-step="workTime" data-delta="-5" aria-label="Reducir 5 segundos">−</button>
               <input id="workTime" type="number" min="5" max="3599" value="40" inputmode="numeric" />
-              <span>SEC</span>
+              <button type="button" data-step="workTime" data-delta="5" aria-label="Aumentar 5 segundos">+</button>
             </div>
+            <span class="unit-label">SECONDS · ±5</span>
           </article>
 
           <article class="setting-card accent-cyan">
             <label for="restTime">REST</label>
-            <div class="time-input-wrap">
+            <div class="stepper time-stepper">
+              <button type="button" data-step="restTime" data-delta="-5" aria-label="Reducir 5 segundos">−</button>
               <input id="restTime" type="number" min="0" max="3599" value="20" inputmode="numeric" />
-              <span>SEC</span>
+              <button type="button" data-step="restTime" data-delta="5" aria-label="Aumentar 5 segundos">+</button>
             </div>
+            <span class="unit-label">SECONDS · ±5</span>
           </article>
 
           <article class="setting-card accent-orange">
             <label for="prepareTime">GET READY</label>
-            <div class="time-input-wrap">
+            <div class="stepper time-stepper">
+              <button type="button" data-step="prepareTime" data-delta="-5" aria-label="Reducir 5 segundos">−</button>
               <input id="prepareTime" type="number" min="0" max="60" value="5" inputmode="numeric" />
-              <span>SEC</span>
+              <button type="button" data-step="prepareTime" data-delta="5" aria-label="Aumentar 5 segundos">+</button>
             </div>
+            <span class="unit-label">SECONDS · ±5</span>
           </article>
+        </div>
+
+        <div class="workout-meta">
+          <label for="workoutName">WORKOUT NAME <span>OPTIONAL</span></label>
+          <input id="workoutName" type="text" maxlength="70" placeholder="e.g. Morning Tabata" autocomplete="off" />
+          <label for="workoutDescription">DESCRIPTION <span>OPTIONAL</span></label>
+          <textarea id="workoutDescription" maxlength="500" rows="2" placeholder="Exercise plan, notes or training goal…"></textarea>
         </div>
 
         <div class="session-summary" aria-live="polite">
           <div><span>TOTAL</span><strong id="totalDuration">08:00</strong></div>
-          <div><span>ALERT</span><strong>LAST 5 SEC</strong></div>
+          <div><span>ROUNDS TOTAL</span><strong id="roundsTotal">8</strong></div>
           <div><span>DISPLAY</span><strong>STAYS AWAKE</strong></div>
         </div>
 
@@ -86,15 +108,22 @@
         </button>
 
         <div class="preset-row" aria-label="Entrenamientos predefinidos">
-          <button class="preset" type="button" data-rounds="8" data-work="20" data-rest="10" data-prepare="5">TABATA 20/10</button>
-          <button class="preset" type="button" data-rounds="10" data-work="40" data-rest="20" data-prepare="5">HIIT 40/20</button>
-          <button class="preset" type="button" data-rounds="6" data-work="60" data-rest="30" data-prepare="5">POWER 60/30</button>
+          <button class="preset" type="button" data-series="1" data-rounds="8" data-work="20" data-rest="10" data-prepare="5">TABATA 20/10</button>
+          <button class="preset" type="button" data-series="1" data-rounds="10" data-work="40" data-rest="20" data-prepare="5">HIIT 40/20</button>
+          <button class="preset" type="button" data-series="1" data-rounds="6" data-work="60" data-rest="30" data-prepare="5">POWER 60/30</button>
         </div>
+
+        <section class="history-section" aria-labelledby="historyTitle">
+          <div class="history-heading"><h3 id="historyTitle">TRAINING LOG</h3><span id="historyCount">0 SESSIONS</span></div>
+          <p class="history-intro">Completed workouts are saved on this device.</p>
+          <div id="historyList" class="history-list"></div>
+          <button id="clearHistoryBtn" class="clear-history" type="button" hidden>CLEAR HISTORY</button>
+        </section>
       </section>
 
       <section id="timerView" class="view timer-view" aria-labelledby="phaseLabel">
         <div class="round-line">
-          <span id="roundCounter">ROUND 01 / 08</span>
+          <span id="roundCounter">SERIES 01 / 01 · ROUND 01 / 08</span>
           <span id="wakeStatus" class="status-pill">AWAKE</span>
         </div>
 
@@ -120,12 +149,13 @@
         <span class="mini-label">SESSION COMPLETE</span>
         <h2 id="doneTitle">WORKOUT<br>COMPLETED</h2>
         <p id="doneSummary">8 rounds crushed.</p>
+        <p class="saved-label">✓ SAVED TO TRAINING LOG</p>
         <button id="againBtn" class="primary-btn completed" type="button">TRAIN AGAIN</button>
       </section>
     </main>
 
     <footer>
-      <span>CHRONOTRAIN / V1.0</span>
+      <span>CHRONOTRAIN / V1.1</span>
       <span id="installHint">ADD TO HOME SCREEN</span>
     </footer>
   </div>

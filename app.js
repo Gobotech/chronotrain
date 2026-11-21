@@ -6,7 +6,7 @@
 
   const els = {
     setupView: $("#setupView"), timerView: $("#timerView"), doneView: $("#doneView"),
-    rounds: $("#rounds"), workTime: $("#workTime"), restTime: $("#restTime"), prepareTime: $("#prepareTime"),
+    rounds: $("#rounds"), series: $("#series"), workoutName: $("#workoutName"), workoutDescription: $("#workoutDescription"), roundsTotal: $("#roundsTotal"), historyList: $("#historyList"), historyCount: $("#historyCount"), clearHistoryBtn: $("#clearHistoryBtn"), workTime: $("#workTime"), restTime: $("#restTime"), prepareTime: $("#prepareTime"),
     totalDuration: $("#totalDuration"), startBtn: $("#startBtn"), pauseBtn: $("#pauseBtn"), skipBtn: $("#skipBtn"), stopBtn: $("#stopBtn"), againBtn: $("#againBtn"),
     soundToggle: $("#soundToggle"), roundCounter: $("#roundCounter"), timerPanel: $("#timerPanel"), phaseMessage: $("#phaseMessage"), phaseLabel: $("#phaseLabel"), timerDisplay: $("#timerDisplay"), phaseProgressBar: $("#phaseProgressBar"), nextLine: $("#nextLine"), alertBanner: $("#alertBanner"), wakeStatus: $("#wakeStatus"), doneSummary: $("#doneSummary"), installHint: $("#installHint")
   };
@@ -15,6 +15,8 @@
     config: null,
     phase: "idle",
     round: 1,
+    series: 1,
+    workoutMeta: null,
     phaseDuration: 0,
     phaseEndsAt: 0,
     pausedRemaining: 0,
@@ -43,6 +45,7 @@
   function getConfig() {
     return {
       rounds: clamp(els.rounds.value, 1, 99),
+      series: clamp(els.series.value, 1, 99),
       work: clamp(els.workTime.value, 5, 3599),
       rest: clamp(els.restTime.value, 0, 3599),
       prepare: clamp(els.prepareTime.value, 0, 60)
@@ -52,6 +55,7 @@
   function normalizeInputs() {
     const c = getConfig();
     els.rounds.value = c.rounds;
+    els.series.value = c.series;
     els.workTime.value = c.work;
     els.restTime.value = c.rest;
     els.prepareTime.value = c.prepare;
@@ -67,8 +71,10 @@
 
   function updateSummary() {
     const c = getConfig();
-    const total = c.prepare + (c.rounds * c.work) + (Math.max(0, c.rounds - 1) * c.rest);
+    const roundsTotal = c.rounds * c.series;
+    const total = c.prepare + (roundsTotal * c.work) + (Math.max(0, roundsTotal - 1) * c.rest);
     els.totalDuration.textContent = formatTime(total);
+    els.roundsTotal.textContent = roundsTotal;
   }
 
   function showView(view) {
@@ -157,9 +163,9 @@
     const c = state.config;
     if (state.phase === "ready") return `NEXT: WORK ${formatTime(c.work)}`;
     if (state.phase === "work") {
-      if (state.round >= c.rounds) return "NEXT: FINISH";
+      if (state.round >= c.rounds && state.series >= c.series) return "NEXT: FINISH";
       if (c.rest > 0) return `NEXT: REST ${formatTime(c.rest)}`;
-      return `NEXT: ROUND ${String(state.round + 1).padStart(2, "0")}`;
+      return state.round >= c.rounds ? `NEXT: SERIES ${state.series + 1}` : `NEXT: ROUND ${state.round + 1}`;
     }
     if (state.phase === "rest") return `NEXT: WORK ${formatTime(c.work)}`;
     return "";
@@ -179,10 +185,20 @@
     els.phaseLabel.textContent = info.label;
     els.phaseMessage.textContent = info.message;
     setTimerTheme(info.className);
-    els.roundCounter.textContent = `ROUND ${String(state.round).padStart(2, "0")} / ${String(state.config.rounds).padStart(2, "0")}`;
+    els.roundCounter.textContent = `SERIES ${String(state.series).padStart(2, "0")} / ${String(state.config.series).padStart(2, "0")} · ROUND ${String(state.round).padStart(2, "0")} / ${String(state.config.rounds).padStart(2, "0")}`;
     els.nextLine.textContent = describeNext();
     if (playCue) cue(phase);
     renderTick(true);
+  }
+
+  function nextRound() {
+    if (state.round >= state.config.rounds) {
+      state.series += 1;
+      state.round = 1;
+    } else {
+      state.round += 1;
+    }
+    startPhase("work", state.config.work);
   }
 
   function advancePhase() {
@@ -192,21 +208,19 @@
       return;
     }
     if (state.phase === "work") {
-      if (state.round >= c.rounds) {
+      if (state.round >= c.rounds && state.series >= c.series) {
         finishWorkout();
         return;
       }
       if (c.rest > 0) {
         startPhase("rest", c.rest);
       } else {
-        state.round += 1;
-        startPhase("work", c.work);
+        nextRound();
       }
       return;
     }
     if (state.phase === "rest") {
-      state.round += 1;
-      startPhase("work", c.work);
+      nextRound();
     }
   }
 
@@ -253,6 +267,12 @@
     normalizeInputs();
     state.config = getConfig();
     state.round = 1;
+    state.series = 1;
+    state.workoutMeta = {
+      name: els.workoutName.value.trim().slice(0,70) || "Interval Workout",
+      description: els.workoutDescription.value.trim().slice(0,500),
+      startedAt: new Date().toISOString()
+    };
     state.paused = false;
     await initAudio();
     showView(els.timerView);
@@ -306,11 +326,79 @@
     clearInterval(state.interval);
     state.interval = null;
     cue("done");
-    els.doneSummary.textContent = `${state.config.rounds} rounds crushed.`;
+    els.doneSummary.textContent = `${state.config.series} series · ${state.config.rounds} rounds per series · ${state.config.series * state.config.rounds} rounds total.`;
+    saveCompletedWorkout();
     setTimerTheme("phase-complete");
     await releaseWakeLock();
     showView(els.doneView);
   }
+
+  const HISTORY_KEY = "chronotrain-training-log-v1";
+
+  function getHistory() {
+    try {
+      const items = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      return Array.isArray(items) ? items : [];
+    } catch (_) { return []; }
+  }
+
+  function saveCompletedWorkout() {
+    const c = state.config;
+    if (!c) return;
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      date: new Date().toISOString(),
+      ...state.workoutMeta,
+      series: c.series, rounds: c.rounds,
+      work: c.work, rest: c.rest, prepare: c.prepare,
+      plannedSeconds: c.prepare + c.series * c.rounds * c.work + (c.series * c.rounds - 1) * c.rest
+    };
+    try {
+      const items = getHistory();
+      items.unshift(entry);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 250)));
+    } catch (_) { /* Private mode or storage disabled: workout still completes. */ }
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const items = getHistory();
+    els.historyList.replaceChildren();
+    els.historyCount.textContent = `${items.length} SESSION${items.length === 1 ? "" : "S"}`;
+    els.clearHistoryBtn.hidden = !items.length;
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "history-empty";
+      empty.textContent = "No workouts completed yet. Your training history will appear here.";
+      els.historyList.append(empty);
+      return;
+    }
+    items.forEach(item => {
+      const card = document.createElement("article");
+      card.className = "history-entry";
+      const title = document.createElement("h4");
+      title.textContent = typeof item.name === "string" ? item.name : "Interval Workout";
+      const date = document.createElement("time");
+      date.dateTime = item.date;
+      date.textContent = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.date));
+      const details = document.createElement("p");
+      details.textContent = `${item.series} series × ${item.rounds} rounds · ${formatTime(item.work)} work / ${formatTime(item.rest)} rest · ${formatTime(item.plannedSeconds)} total`;
+      card.append(title, date, details);
+      if (item.description) {
+        const desc = document.createElement("p");
+        desc.className = "history-description";
+        desc.textContent = item.description;
+        card.append(desc);
+      }
+      els.historyList.append(card);
+    });
+  }
+
+  els.clearHistoryBtn.addEventListener("click", () => {
+    if (!window.confirm("¿Borrar todo el historial de entrenamientos de este dispositivo?")) return;
+    try { localStorage.removeItem(HISTORY_KEY); } catch (_) {}
+    renderHistory();
+  });
 
   function updateInstallHint() {
     const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
@@ -331,6 +419,7 @@
   }));
 
   $$(".preset").forEach(btn => btn.addEventListener("click", () => {
+    els.series.value = btn.dataset.series;
     els.rounds.value = btn.dataset.rounds;
     els.workTime.value = btn.dataset.work;
     els.restTime.value = btn.dataset.rest;
@@ -371,5 +460,6 @@
   }
 
   updateSummary();
+  renderHistory();
   updateInstallHint();
 })();

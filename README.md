@@ -42,3 +42,13 @@ If guaranteed locked-screen alerts are mandatory, ChronoTrain needs a native iOS
 - `manifest.webmanifest` — PWA installation metadata.
 - `sw.js` — offline cache/service worker.
 - `icons/` — app icons.
+
+
+## Novedades v1.1
+
+- Sin año 1986, nuevo lema: **Beat the Clock. Train harder.**
+- **Series** (agrupaciones de rondas): por ejemplo, 3 series × 8 rondas = 24 bloques de trabajo; hay un descanso entre cada bloque de trabajo, incluso entre series. No se añade descanso tras el último bloque.
+- Controles `+` y `−` para series, rondas y tiempos (tiempos en pasos de 5 s). Puedes escribir también un valor exacto.
+- Nombre y descripción opcionales del entrenamiento. Los entrenamientos **completados** se guardan automáticamente en el historial local de este dispositivo mediante `localStorage`. Los entrenamientos detenidos antes de terminar no se registran. El historial se puede borrar desde la app.
+- Los datos no se sincronizan entre dispositivos y pueden perderse si se borran los datos del navegador/PWA.
+- Para actualizar en GitHub Pages, reemplaza los archivos existentes en la raíz y espera el despliegue de Pages.
